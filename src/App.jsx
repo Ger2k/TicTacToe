@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
 import confetti from 'canvas-confetti'
 import './App.css'
 import { Square } from "./components/Square"
@@ -7,11 +7,15 @@ import { checkWinnerFrom, checkEndGame } from './logic/board.js'
 import { WinnerModal } from './components/WinnerModal.jsx'
 
 function App() {
-  const [board,setBoard] = useState(
-    Array(9).fill(null)
-    )
+  const [board,setBoard] = useState( () => {
+    const boardFromStorage = window.localStorage.getItem('board')
+    return boardFromStorage ? JSON.parse(boardFromStorage) : Array(9).fill(null)
+  })
 
-  const [turn,setTurn] = useState(turns.x)
+  const [turn,setTurn] = useState(() => {
+    const turnFromStorage = window.localStorage.getItem('turn')
+    return turnFromStorage ?? turns.x
+  })
 
   //NULL = NO HAY GANADOR || FALSE = EMPATE
   const [winner,setWinner] = useState(null)
@@ -22,6 +26,9 @@ function App() {
     setBoard(Array(9).fill(null))
     setTurn(turns.x)
     setWinner(null)
+
+    window.localStorage.removeItem('board')
+    window.localStorage.removeItem('turn')
   }
 
   const updateBoard = (index) => {
@@ -37,6 +44,10 @@ function App() {
     //CAMBIAR EL TURNO
     const newTurn = turn === turns.x ? turns.o : turns.x
     setTurn(newTurn)
+
+    //GUARDAR PROGRESO
+    window.localStorage.setItem('board',JSON.stringify(newBoard))
+    window.localStorage.setItem('turn',newTurn)
 
     //REVISAR SI HAY GANADOR
     const newWinner = checkWinnerFrom(newBoard)
